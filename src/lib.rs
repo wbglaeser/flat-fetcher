@@ -39,27 +39,58 @@ impl fmt::Display for Flat {
                self.location, self.squaremeters, self.price, self.link)
     }
 }
+// End of Flat structure
 
-// Define iterator over flats
+fn suitable_zip(location: &String) -> bool {
+    let suitable_zips: Vec<String> = vec![
+        String::from("Kreuzberg"),
+        String::from("Neukölln"),
+        String::from("Mitte"),
+        String::from("Wedding"),
+        String::from("Friedrichshain"),
+    ];
 
+    for zip in suitable_zips {
+        if zip == *location {
+            return true
+        }
+    }
+    return false
+}
+
+fn suitable_sm(size: &String) -> bool {
+    let size_as_int = size.parse::<i32>().unwrap();
+    if size_as_int > 30 {
+        return true
+    } else { return false }
+}
+
+
+/// Main run function
 pub fn run() -> Result<(), Box<std::error::Error>> {
 
-    let mut FlatIterator: Vec<Flat> = Vec::new();
-
-    let res = reqwest::get("https://www.ebay-kleinanzeigen.de/s-berlin/mietwohnung/k0l3331")?;
+    // Collect all flats
+    let mut flat_iterator: Vec<Flat> = Vec::new();
+    let res = reqwest::get("https://www.ebay-kleinanzeigen.de/s-berlin/anzeige:angebote/mietwohnung/k0l3331")?;
 
     Document::from_read(res)?
 
         .find(Class("aditem"))
-        //.filter_map(|n| n.attr("href"))
         .for_each(|x| {
 
             let new_flat = regstructs::extract_details(x);
-            FlatIterator.push(new_flat);
-
+            flat_iterator.push(new_flat);
         });
 
-    for flat in FlatIterator {
+
+    // Filter flats for suitable candidates
+    let filtered_flats: Vec<Flat> = flat_iterator
+        .into_iter()
+        .filter(|flat| suitable_zip(&flat.location))
+        .filter(|flat| suitable_sm(&flat.squaremeters))
+        .collect();
+
+    for flat in filtered_flats {
         println!("{}", flat);
     }
 

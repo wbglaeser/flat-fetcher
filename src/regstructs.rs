@@ -10,7 +10,8 @@ lazy_static! {
     static ref RE_SM_CAN: Regex = Regex::new(r"[0-9]{2,3}\sm²").unwrap();
     static ref RE_SM: Regex = Regex::new(r"[0-9]{2,3}").unwrap();
 
-    static ref RE_ZIP: Regex = Regex::new(r"\d{5}").unwrap();
+    static ref RE_ZIP_CAN: Regex = Regex::new(r"\d{5}\n\s+[a-zA-Zöäü]+").unwrap();
+    static ref RE_ZIP: Regex = Regex::new(r"[a-zA-Zöäü]+").unwrap();
 
     static ref RE_RENT_CAN: Regex = Regex::new(r"[0-9\\.]{3,5}\s€").unwrap();
     static ref RE_RENT: Regex = Regex::new(r"[0-9\\.]{3,5}").unwrap();
@@ -22,7 +23,7 @@ pub fn extract_details(x: Node) -> Flat {
     let text = &x.text();
 
     let sm = handle_outer_capture(text, &*RE_SM_CAN, &*RE_SM);
-    let zip = handle_inner_capture(text, &*RE_ZIP);
+    let zip = handle_outer_capture(text, &*RE_ZIP_CAN, &*RE_ZIP);
     let rent = handle_outer_capture(text, &*RE_RENT_CAN, &*RE_RENT);
 
     let link = extract_link(x);
